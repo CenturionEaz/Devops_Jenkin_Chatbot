@@ -1,31 +1,40 @@
 pipeline {
     agent any
-
+    
     environment {
-        GEMINI_API_KEY = credentials('gemini-api-key')
+        DOCKER_IMAGE = "chatbot"
     }
 
     stages {
-        stage('Build Docker Image') {
+        stage('Checkout') {
             steps {
-                sh 'docker build -t chatbot .'
+                checkout scm
             }
         }
 
-        stage('Run Container') {
+        stage('Build Docker Image') {
             steps {
-                // Stop any old container
-                sh 'docker stop chatbot-container || true'
-                sh 'docker rm chatbot-container || true'
+                script {
+                    docker.build(DOCKER_IMAGE)
+                }
+            }
+        }
 
-                // Run new one with API key
-                sh '''
-                docker run -d \
-                  -p 5000:5000 \
-                  --name chatbot-container \
-                  -e GEMINI_API_KEY=$GEMINI_API_KEY \
-                  chatbot
-                '''
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Add test steps here, e.g., pytest or another testing framework
+                    sh 'pytest tests/'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Add deployment steps here (e.g., push image to Docker registry)
+                    sh 'docker run -d -p 5000:5000 ${DOCKER_IMAGE}'
+                }
             }
         }
     }

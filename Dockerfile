@@ -1,20 +1,21 @@
-# Use a base image
+# Dockerfile for chatbot app
 FROM python:3.9-slim
 
-# Set the working directory
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
+
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements file to the container
-COPY requirements.txt .
-
 # Install dependencies
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code to the container
-COPY . .
+# Copy chatbot and flask app files
+COPY . /app/
 
-# Expose the application port
+# Expose the port on which the app will run
 EXPOSE 5000
 
-# Define the command to run the app
+# Start the Flask app
 CMD ["python", "web_chatbot.py"]
