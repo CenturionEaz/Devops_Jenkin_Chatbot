@@ -1,41 +1,34 @@
 pipeline {
     agent any
-    
-    environment {
-        DOCKER_IMAGE = "chatbot"
-    }
 
     stages {
-        stage('Checkout') {
+        stage('Pull latest code') {
             steps {
-                checkout scm
+                git 'https://github.com/CenturionEaz/Devops_Jenkin_Chatbot'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build(DOCKER_IMAGE)
-                }
+                sh 'docker build -t chatbot_image .'
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Docker Container') {
             steps {
-                script {
-                    // Add test steps here, e.g., pytest or another testing framework
-                    sh 'pytest tests/'
-                }
+                // Stop previous container if running
+                sh '''
+                docker stop chatbot_container || true
+                docker rm chatbot_container || true
+                docker run -d --name chatbot_container -p 5000:5000 --env-file .env chatbot_image
+                '''
             }
         }
+    }
 
-        stage('Deploy') {
-            steps {
-                script {
-                    // Add deployment steps here (e.g., push image to Docker registry)
-                    sh 'docker run -d -p 5000:5000 ${DOCKER_IMAGE}'
-                }
-            }
+    post {
+        always {
+            echo "Pipeline finished."
         }
     }
 }

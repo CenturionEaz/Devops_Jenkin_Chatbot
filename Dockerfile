@@ -1,21 +1,22 @@
-# Dockerfile for chatbot app
-FROM python:3.9-slim
+# Use official Python image
+FROM python:3.10
 
-# Set environment variables
-ENV PYTHONUNBUFFERED 1
-
-# Set working directory
+# Set work directory
 WORKDIR /app
 
+# Copy project files
+COPY . .
+
 # Install dependencies
-COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy chatbot and flask app files
-COPY . /app/
-
-# Expose the port on which the app will run
+# Expose Flask default port
 EXPOSE 5000
 
-# Start the Flask app
-CMD ["python", "web_chatbot.py"]
+# Set environment variables
+ENV FLASK_APP=web_chatbot.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5000
+
+# Run Flask app
+CMD ["flask", "run"]
